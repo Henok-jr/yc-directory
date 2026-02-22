@@ -5,8 +5,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { User } from "lucide-react";
 import StartupCard, { StartupCardSkeleton } from "@/components/StartupCard";
-import { Suspense } from "react";
-import UserStartups from "@/components/UserStartups";
+import UserStartupsClient from '@/components/UserStartups.client'
 
 const page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const id = (await params).id;
@@ -55,9 +54,7 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
           </p>
 
           <ul className="card_grid-sm">
-            <Suspense fallback={<StartupCardSkeleton />}>
-              <UserStartups id={id} />
-            </Suspense>
+            <UserStartupsClient id={id} />
           </ul>
         </div>
       </section>

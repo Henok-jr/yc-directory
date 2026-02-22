@@ -1,16 +1,16 @@
-import Navbar from "@/components/Navbar";
-import { Suspense } from "react";
+import Navbar from '@/components/Navbar.client'
+import Providers from '@/components/Providers.client'
 
 export default function Layout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <main className="font-work-sans">
-      <Suspense fallback={null}>
+      <Providers>
         <Navbar />
-      </Suspense>
 
-      {children}
+        {children}
+      </Providers>
     </main>
   );
 }

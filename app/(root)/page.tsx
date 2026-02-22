@@ -4,18 +4,15 @@ import StartupCard, { StartupTypeCard } from "@/components/StartupCard";
 import { STARTUPS_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch, SanityLive } from "@/sanity/lib/live";
 import { auth } from "@/auth";
-import { cache, Suspense } from "react";
+import { cache } from "react";
+import StartupsListClient from '@/components/StartupsList.client'
+import SessionLoggerClient from '@/components/SessionLogger.client'
 
 // Cache the auth call to prevent blocking the route
 const cachedAuth = cache(() => auth());
 
-export default function Home({ searchParams }: { searchParams: Promise<{ query?: string }> }) {
-  // Render an async child that uses runtime data inside Suspense so the route can stream immediately.
-  return (
-    <Suspense fallback={<p className="mt-7">Loading...</p>}>
-      <HomeContent searchParams={searchParams} />
-    </Suspense>
-  );
+export default function Home(props: { searchParams: Promise<{ query?: string }> }) {
+  return <HomeContent {...props} />
 }
 
 // Async server component that can safely await runtime data (searchParams)
@@ -42,37 +39,15 @@ async function HomeContent({ searchParams }: { searchParams: Promise<{ query?: s
           {query ? `Search results for "${query}"` : "All Startups"}
         </p>
 
-        {/* Suspense for non-blocking startup list */}
-        <Suspense fallback={<p className="mt-7">Loading startups...</p>}>
-          <StartupsList query={query} />
-        </Suspense>
+        {/* Client-loaded non-blocking startup list */}
+        <StartupsListClient query={query} />
       </section>
 
       <SanityLive />
 
-      {/* Defer auth to avoid blocking navigation */}
-      <Suspense fallback={null}>
-        <SessionLogger />
-      </Suspense>
+      {/* Client-side session logger to avoid blocking */}
+      <SessionLoggerClient />
     </>
-  );
-}
-
-// Async child component to fetch startups
-async function StartupsList({ query }: { query?: string | null }) {
-  const params = { search: query || null };
-  const { data: posts } = await sanityFetch({ query: STARTUPS_QUERY, params });
-
-  if (!posts || posts.length === 0) {
-    return <p className="no-results mt-7">No startups found</p>;
-  }
-
-  return (
-    <ul className="mt-7 card_grid">
-      {posts.map((post: StartupTypeCard) => (
-        <StartupCard key={post._id} post={post} />
-      ))}
-    </ul>
   );
 }
 
