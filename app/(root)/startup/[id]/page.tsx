@@ -1,6 +1,6 @@
 import { formatDate } from '@/lib/utils';
 import { client } from '@/sanity/lib/client';
-import { STARTUP_BY_ID_QUERY } from '@/sanity/lib/queries';
+import { PLAYLIST_BY_SLUG_QUERY, STARTUP_BY_ID_QUERY } from '@/sanity/lib/queries';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -8,6 +8,8 @@ import { PortableText } from '@portabletext/react';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import View from '@/components/View';
+import { Startup } from '@/sanity/types';
+import StartupCard, { StartupTypeCard } from '@/components/StartupCard';
 
 // ✅ IMPORTANT: params is a Promise in Next 16
 const Page = async ({
@@ -19,7 +21,41 @@ const Page = async ({
 
   const post = await client.fetch(STARTUP_BY_ID_QUERY, { id });
 
+  // Try multiple possible slugs for the editors picks playlist (users may create 'editors picks')
+  const possibleSlugs = ['editors-picks', 'editors-picks-new'];
+  let playlist: any = null;
+  let matchedSlug: string | null = null;
+  for (const s of possibleSlugs) {
+    // fetch until we find a matching playlist
+    const res = await client.fetch(PLAYLIST_BY_SLUG_QUERY, { slug: s });
+    if (res) {
+      playlist = res;
+      matchedSlug = s;
+      break;
+    }
+  }
+  console.log('PLAYLIST fetch result (matchedSlug):', matchedSlug, playlist);
+  const editorPosts: StartupTypeCard[] = (playlist?.select as StartupTypeCard[]) ?? [];
+
   if (!post) return notFound();
+
+  // Normalize pitch: PortableText expects an array of block objects.
+  // Some documents may have pitch saved as a plain string; convert that into a block array.
+  let pitchValue = post.pitch;
+  if (typeof pitchValue === 'string' && pitchValue.length > 0) {
+    pitchValue = [
+      {
+        _type: 'block',
+        style: 'normal',
+        children: [
+          {
+            _type: 'span',
+            text: pitchValue,
+          },
+        ],
+      },
+    ];
+  }
 
   return (
     <>
@@ -61,9 +97,9 @@ const Page = async ({
 
           <h3 className="text-30-bold">Pitch Details</h3>
 
-          {post.pitch && post.pitch.length > 0 ? (
+          {pitchValue && pitchValue.length > 0 ? (
             <article className="prose max-w-4xl font-work-sans break-all">
-              <PortableText value={post.pitch} />
+              <PortableText value={pitchValue} />
             </article>
           ) : (
             <p className="no-result">No details provided</p>
@@ -72,7 +108,21 @@ const Page = async ({
 
         <hr className="divider" />
 
-        {/* TODO: EDITOR SELECTED STARTUPS */}
+        {editorPosts?.length > 0 ? (
+          <div className="max-w-4xl mx-auto">
+            <p className=" text-30-semibold">Editor picks</p>
+            <ul className=" mt-7 card_grid-sm">
+             {editorPosts.map((post: StartupTypeCard, i: number) => (
+                <StartupCard key={i} post={post} />
+             ))}
+            </ul>
+
+          </div>
+        ) : (
+          <div className="max-w-4xl mx-auto">
+            <p className="text-16-medium !text-black-300">No editor picks available. Create a playlist with slug <code>editors-picks-new</code> in Sanity and add startups to its <strong>select</strong> array.</p>
+          </div>
+        )}
 
         <Suspense fallback={<Skeleton className="view_skeleton"/>}>
           <View id={id} />

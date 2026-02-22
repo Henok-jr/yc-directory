@@ -19,7 +19,7 @@ const StartupForm = () => {
   const router = useRouter();
 
   const handleFormSubmit = async (prevState: any, formData: FormData) => {
-  //setErrors({}); // ✅ clear previous errors
+  setErrors({}); // ✅ clear previous errors
 
   try {
     const formValues = {
@@ -101,6 +101,7 @@ const StartupForm = () => {
           className="startup-form_input"
           required
           placeholder="Startup Title"
+          onChange={() => setErrors(prev => { const copy = { ...prev }; delete copy.title; return copy; })}
         />
         {errors.title && (
           <p className="startup-form_error">{errors.title}</p>
@@ -117,6 +118,7 @@ const StartupForm = () => {
           className="startup-form_textarea"
           required
           placeholder="Startup Description"
+          onChange={() => setErrors(prev => { const copy = { ...prev }; delete copy.description; return copy; })}
         />
         {errors.description && (
           <p className="startup-form_error">{errors.description}</p>
@@ -133,6 +135,7 @@ const StartupForm = () => {
           className="startup-form_input"
           required
           placeholder="Startup category (Tech, Health, Education ...)"
+          onChange={() => setErrors(prev => { const copy = { ...prev }; delete copy.category; return copy; })}
         />
         {errors.category && (
           <p className="startup-form_error">{errors.category}</p>
@@ -149,6 +152,7 @@ const StartupForm = () => {
           className="startup-form_input"
           required
           placeholder="Startup Image URL"
+          onChange={() => setErrors(prev => { const copy = { ...prev }; delete copy.link; return copy; })}
         />
         {errors.link && (
           <p className="startup-form_error">{errors.link}</p>
@@ -161,7 +165,7 @@ const StartupForm = () => {
         </label>
         <MDEditor
           value={pitch}
-          onChange={(value) => setPitch(value as string)}
+          onChange={(value) => { setPitch(value as string); setErrors(prev => { const copy = { ...prev }; delete copy.pitch; return copy; }); }}
           id="pitch"
           preview="edit"
           height={300}

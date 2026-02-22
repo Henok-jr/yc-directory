@@ -9,11 +9,17 @@ import { cache, Suspense } from "react";
 // Cache the auth call to prevent blocking the route
 const cachedAuth = cache(() => auth());
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ query?: string }>;
-}) {
+export default function Home({ searchParams }: { searchParams: Promise<{ query?: string }> }) {
+  // Render an async child that uses runtime data inside Suspense so the route can stream immediately.
+  return (
+    <Suspense fallback={<p className="mt-7">Loading...</p>}>
+      <HomeContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+// Async server component that can safely await runtime data (searchParams)
+async function HomeContent({ searchParams }: { searchParams: Promise<{ query?: string }> }) {
   const query = (await searchParams).query;
 
   // Defer auth to a Suspense-wrapped child to avoid blocking the route
