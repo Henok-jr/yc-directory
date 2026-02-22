@@ -19,23 +19,22 @@ const Page = async ({
 }) => {
   const { id } = await params;
 
-  const post = await client.fetch(STARTUP_BY_ID_QUERY, { id });
+  // Fetch post and playlist in parallel. Playlist lookup tries common slug variants.
+  const [post, playlist] = await Promise.all([
+    client.fetch(STARTUP_BY_ID_QUERY, { id }),
+    (async () => {
+      const possibleSlugs = ['editors-picks', 'editors-picks-new', 'editor-picks-new'];
+      for (const s of possibleSlugs) {
+        const res = await client.fetch(PLAYLIST_BY_SLUG_QUERY, { slug: s });
+        if (res) return { res, matchedSlug: s };
+      }
+      return null;
+    })(),
+  ]);
 
-  // Try multiple possible slugs for the editors picks playlist (users may create 'editors picks')
-  const possibleSlugs = ['editors-picks', 'editors-picks-new'];
-  let playlist: any = null;
-  let matchedSlug: string | null = null;
-  for (const s of possibleSlugs) {
-    // fetch until we find a matching playlist
-    const res = await client.fetch(PLAYLIST_BY_SLUG_QUERY, { slug: s });
-    if (res) {
-      playlist = res;
-      matchedSlug = s;
-      break;
-    }
-  }
-  console.log('PLAYLIST fetch result (matchedSlug):', matchedSlug, playlist);
-  const editorPosts: StartupTypeCard[] = (playlist?.select as StartupTypeCard[]) ?? [];
+  // Normalize playlist result shape and extract selected posts safely
+  const playlistResult = playlist?.res ?? playlist ?? null;
+  const editorPosts: StartupTypeCard[] = (playlistResult?.select as StartupTypeCard[]) ?? [];
 
   if (!post) return notFound();
 

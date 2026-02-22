@@ -140,19 +140,25 @@ function dispatch(action: Action) {
   })
 }
 
+// Schedule dispatch on the next microtask to avoid updating React state during render
+function scheduleDispatch(action: Action) {
+  Promise.resolve().then(() => dispatch(action))
+}
+
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
-    dispatch({
+    scheduleDispatch({
       type: "UPDATE_TOAST",
       toast: { ...props, id },
     })
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
 
-  dispatch({
+  // schedule the initial add to avoid triggering state updates during render
+  scheduleDispatch({
     type: "ADD_TOAST",
     toast: {
       ...props,
