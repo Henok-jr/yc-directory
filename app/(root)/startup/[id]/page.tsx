@@ -15,15 +15,21 @@ import Image from "next/image";
 import { PortableText } from "@portabletext/react";
 import StartupCard, { StartupTypeCard } from "@/components/StartupCard";
 import ViewClient from "@/components/View.client";
+import { Suspense } from "react";
 
-// ✅ Async server component with awaited params (Next 16 compliant)
-const Page = async ({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) => {
-  const { id } = await params;
+// Non-async parent page — fetches moved to an async child wrapped in Suspense
+export default function Page({ params }: { params: { id: string } }) {
+  const { id } = params;
 
+  return (
+    <Suspense fallback={<p className="mt-7">Loading startup...</p>}>
+      <PostContent id={id} />
+    </Suspense>
+  );
+}
+
+// Async server child component that performs uncached fetches safely inside Suspense
+async function PostContent({ id }: { id: string }) {
   // Fetch post and playlist in parallel
   const [post, playlistWrapper] = await Promise.all([
     client.fetch(STARTUP_BY_ID_QUERY, { id }),
@@ -138,6 +144,4 @@ const Page = async ({
       </section>
     </>
   );
-};
-
-export default Page;
+}
