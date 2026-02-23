@@ -5,7 +5,7 @@ import { getSession } from 'next-auth/react'
 
 export default function SessionLogger() {
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
     (async () => {
       try {
         const session = await getSession()

@@ -18,8 +18,10 @@ import ViewClient from "@/components/View.client";
 import { Suspense } from "react";
 
 // Non-async parent page — fetches moved to an async child wrapped in Suspense
-export default function Page({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  if (!id) return notFound();
 
   return (
     <Suspense fallback={<p className="mt-7">Loading startup...</p>}>
@@ -30,28 +32,42 @@ export default function Page({ params }: { params: { id: string } }) {
 
 // Async server child component that performs uncached fetches safely inside Suspense
 async function PostContent({ id }: { id: string }) {
-  // Fetch post and playlist in parallel
-  const [post, playlistWrapper] = await Promise.all([
-    client.fetch(STARTUP_BY_ID_QUERY, { id }),
-    (async () => {
-      const possibleSlugs = [
-        "editors-picks",
-        "editors-picks-new",
-        "editor-picks-new",
-      ];
-      for (const s of possibleSlugs) {
-        const res = await client.fetch(PLAYLIST_BY_SLUG_QUERY, { slug: s });
-        if (res) return { res, matchedSlug: s };
-      }
-      return null;
-    })(),
-  ]);
+  if (!id) return notFound();
+
+  let post: any = null;
+  let playlistWrapper: any = null;
+
+  try {
+    // Fetch post and playlist in parallel
+    ;[post, playlistWrapper] = await Promise.all([
+      client.fetch(STARTUP_BY_ID_QUERY, { id: String(id) }),
+      (async () => {
+        const possibleSlugs = [
+          "editors-picks",
+          "editors-picks-new",
+          "editor-picks-new",
+        ];
+        for (const s of possibleSlugs) {
+          const res = await client.fetch(PLAYLIST_BY_SLUG_QUERY, { slug: s });
+          if (res) return { res, matchedSlug: s };
+        }
+        return null;
+      })(),
+    ]);
+  } catch (e) {
+    console.error("Startup details fetch failed", { id, error: e });
+    // Treat as not found for users, but keep server log for debugging.
+    return notFound();
+  }
 
   const playlistResult = playlistWrapper?.res ?? playlistWrapper ?? null;
   const editorPosts: StartupTypeCard[] =
     (playlistResult?.select as StartupTypeCard[]) ?? [];
 
-  if (!post) return notFound();
+  if (!post) {
+    console.warn("Startup not found", { id });
+    return notFound();
+  }
 
   // Normalize pitch for PortableText
   let pitchValue = post.pitch;
