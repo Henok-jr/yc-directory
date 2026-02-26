@@ -4,8 +4,14 @@ import React, { useEffect, useState } from 'react'
 import { client } from '@/sanity/lib/client'
 import { STARTUPS_BY_AUTHOR_QUERY } from '@/sanity/lib/queries'
 import StartupCard, { StartupTypeCard, StartupCardSkeleton } from './StartupCard'
+import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import { Button } from '@/components/ui/button'
 
 export default function UserStartupsClient({ id }: { id: string }) {
+  const { data: session } = useSession()
+  const isOwner = (session as any)?.id === id
+
   const [posts, setPosts] = useState<StartupTypeCard[] | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -21,7 +27,23 @@ export default function UserStartupsClient({ id }: { id: string }) {
   }, [id])
 
   if (loading) return <StartupCardSkeleton />
-  if (!posts || posts.length === 0) return <p className="no-result">No posts yet</p>
+
+  if (!posts || posts.length === 0)
+    return (
+      <div className="w-full rounded-2xl border bg-white p-6">
+        <p className="text-16-medium text-black-300">
+          {isOwner ? "You haven't created any startups yet." : "This user hasn't created any startups yet."}
+        </p>
+
+        {isOwner ? (
+          <div className="mt-4">
+            <Button asChild className="startup-card_btn">
+              <Link href="/startup/create">Create your first startup</Link>
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    )
 
   return (
     <>

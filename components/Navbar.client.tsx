@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -9,6 +9,8 @@ import React from "react";
 
 export default function NavbarClient() {
   const { data: session } = useSession();
+
+  const profileId = (session as any)?.id;
 
   return (
     <header className="px-5 py-3 bg-white shadow-sm font-work-sans">
@@ -30,15 +32,31 @@ export default function NavbarClient() {
                 <LogOut className="h-6 w-6 sm:hidden text-red-500" />
               </button>
 
-              <Link href={`/user/${session.user?.id}`}>
+              <Link href={profileId ? `/user/${profileId}` : `/`}>
                 <Avatar className="size-10">
-                  <AvatarImage src={(session.user as any)?.image || ""} alt={(session.user as any)?.name || ""} />
+                  <AvatarImage
+                    src={(session.user as any)?.image || ""}
+                    alt={(session.user as any)?.name || ""}
+                  />
                   <AvatarFallback>AV</AvatarFallback>
                 </Avatar>
               </Link>
             </>
           ) : (
-            <button onClick={() => signIn('github')}>Login</button>
+            <div className="flex items-center gap-3">
+              <button
+                className="text-14-medium"
+                onClick={() => signIn("github")}
+              >
+                Login with GitHub
+              </button>
+              <button
+                className="text-14-medium"
+                onClick={() => signIn("google")}
+              >
+                Login with Google
+              </button>
+            </div>
           )}
         </div>
       </nav>

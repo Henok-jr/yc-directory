@@ -42,6 +42,16 @@ export const startup = defineType({
     }),
 
     defineField({
+      name: 'contactEmail',
+      title: 'Contact email',
+      type: 'string',
+      validation: (Rule) =>
+        Rule.required()
+          .email()
+          .error('Please enter a valid contact email'),
+    }),
+
+    defineField({
       name: 'image',
       type: 'url',
       validation: (Rule) => Rule.required(),

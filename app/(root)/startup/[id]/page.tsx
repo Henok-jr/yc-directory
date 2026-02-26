@@ -16,6 +16,9 @@ import { PortableText } from "@portabletext/react";
 import StartupCard, { StartupTypeCard } from "@/components/StartupCard";
 import ViewClient from "@/components/View.client";
 import { Suspense } from "react";
+import { auth } from "@/auth";
+import { Button } from "@/components/ui/button";
+import DeleteStartupButton from "@/components/DeleteStartupButton.client";
 
 // Non-async parent page — fetches moved to an async child wrapped in Suspense
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
@@ -33,6 +36,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 // Async server child component that performs uncached fetches safely inside Suspense
 async function PostContent({ id }: { id: string }) {
   if (!id) return notFound();
+
+  const session = await auth();
 
   let post: any = null;
   let playlistWrapper: any = null;
@@ -86,6 +91,16 @@ async function PostContent({ id }: { id: string }) {
     ];
   }
 
+  const isOwner = (() => {
+    const sessionUserId = (session as any)?.id ?? (session as any)?.user?.id
+    const authorRef = post?.author?._ref
+    const authorDocId = post?.author?._id
+    return Boolean(
+      sessionUserId &&
+        (sessionUserId === authorRef || sessionUserId === authorDocId)
+    )
+  })();
+
   return (
     <>
       <section className="pink_container !min-h-[230px]">
@@ -123,6 +138,27 @@ async function PostContent({ id }: { id: string }) {
             </Link>
             <p className="category-tag">{post.category}</p>
           </div>
+
+          {isOwner ? (
+            <div className="flex items-center gap-3">
+              <Button asChild className="startup-card_btn">
+                <Link href={`/startup/${id}/edit`}>Edit startup</Link>
+              </Button>
+              <DeleteStartupButton id={id} />
+            </div>
+          ) : null}
+
+          {post.contactEmail ? (
+            <div className="rounded-xl border border-black-100 bg-white p-4">
+              <p className="text-14-medium text-black-300">Contact</p>
+              <a
+                className="text-16-medium text-primary hover:underline"
+                href={`mailto:${post.contactEmail}`}
+              >
+                {post.contactEmail}
+              </a>
+            </div>
+          ) : null}
 
           <h3 className="text-30-bold">Pitch Details</h3>
 

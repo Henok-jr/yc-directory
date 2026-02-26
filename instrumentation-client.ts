@@ -7,6 +7,9 @@ Sentry.init({
     Sentry.replayIntegration(),
     Sentry.feedbackIntegration({
       colorScheme: "system",
+      // Keep the feedback button visible but avoid overlapping the fixed Views badge
+      buttonLabel: "Report bug",
+      buttonPosition: "bottom-left",
     }),
   ],
 

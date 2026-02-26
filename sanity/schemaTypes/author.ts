@@ -5,11 +5,19 @@ export const author = defineType(  {
     name: "author",
     title: "Author",
     type: "document",
-    icon: UserIcon,
+    icon: UserIcon as any,
     fields: [
         defineField({
             name: 'id',
             type: 'number',
+        } ),
+        defineField({
+            name: 'provider',
+            type: 'string',
+        } ),
+        defineField({
+            name: 'providerAccountId',
+            type: 'string',
         } ),
         defineField({
             name: 'name',
