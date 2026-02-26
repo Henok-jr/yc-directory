@@ -10,13 +10,14 @@ import {
   STARTUP_BY_ID_QUERY,
 } from "@/sanity/lib/queries";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { PortableText } from "@portabletext/react";
 import StartupCard, { StartupTypeCard } from "@/components/StartupCard";
 import ViewClient from "@/components/View.client";
 import { Suspense } from "react";
 import { auth } from "@/auth";
+import { deleteStartup } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
 import DeleteStartupButton from "@/components/DeleteStartupButton.client";
 
@@ -65,6 +66,17 @@ async function PostContent({ id }: { id: string }) {
     return notFound();
   }
 
+  const isOwner = session?.id && post?.author?._id && session.id === post.author._id;
+
+  async function deleteAction() {
+    "use server";
+    const res = await deleteStartup(id);
+    if (res.status === 'SUCCESS') {
+      redirect('/');
+    }
+    throw new Error(res.error || 'Failed to delete startup');
+  }
+
   const playlistResult = playlistWrapper?.res ?? playlistWrapper ?? null;
   const editorPosts: StartupTypeCard[] =
     (playlistResult?.select as StartupTypeCard[]) ?? [];
@@ -90,16 +102,6 @@ async function PostContent({ id }: { id: string }) {
       },
     ];
   }
-
-  const isOwner = (() => {
-    const sessionUserId = (session as any)?.id ?? (session as any)?.user?.id
-    const authorRef = post?.author?._ref
-    const authorDocId = post?.author?._id
-    return Boolean(
-      sessionUserId &&
-        (sessionUserId === authorRef || sessionUserId === authorDocId)
-    )
-  })();
 
   return (
     <>
@@ -140,19 +142,22 @@ async function PostContent({ id }: { id: string }) {
           </div>
 
           {isOwner ? (
-            <div className="flex items-center gap-3">
+            <div className="flex gap-3">
               <Button asChild className="startup-card_btn">
-                <Link href={`/startup/${id}/edit`}>Edit startup</Link>
+                <Link href={`/startup/${id}/edit`}>Edit</Link>
               </Button>
-              <DeleteStartupButton id={id} />
+
+              <form action={deleteAction}>
+                <DeleteStartupButton />
+              </form>
             </div>
           ) : null}
 
           {post.contactEmail ? (
-            <div className="rounded-xl border border-black-100 bg-white p-4">
-              <p className="text-14-medium text-black-300">Contact</p>
+            <div className="rounded-lg border bg-white p-4">
+              <p className="text-14-medium text-black-300">Contact Email</p>
               <a
-                className="text-16-medium text-primary hover:underline"
+                className="text-16-medium underline break-all"
                 href={`mailto:${post.contactEmail}`}
               >
                 {post.contactEmail}

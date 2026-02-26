@@ -21,7 +21,6 @@ export const STARTUPS_QUERY = defineQuery(`
     views,
     description,
     category,
-    contactEmail,
     image
   }
 `);
@@ -31,7 +30,6 @@ export const STARTUP_BY_ID_QUERY = defineQuery(`*[_type == "startup" && _id == $
   title, 
   slug,
   _createdAt,
-  author,
   author -> {
     _id, name, username, image, bio
   },
@@ -58,20 +56,7 @@ export const AUTHOR_BY_GITHUB_ID_QUERY = defineQuery(`
     bio
   }
   `);
-export const AUTHOR_BY_PROVIDER_ACCOUNT_ID_QUERY = defineQuery(`
-  *[_type == "author" && provider == $provider && providerAccountId == $providerAccountId][0]{
-    _id,
-    provider,
-    providerAccountId,
-    id,
-    name,
-    username,
-    email,
-    image,
-    bio
-  }
-`);
-export const AUTHOR_BY_ID_QUERY = defineQuery(`
+  export const AUTHOR_BY_ID_QUERY = defineQuery(`
   *[_type == "author" && _id == $id][0]{
     _id, 
     id,
@@ -82,8 +67,8 @@ export const AUTHOR_BY_ID_QUERY = defineQuery(`
     bio
   }
   `);
-export const STARTUPS_BY_AUTHOR_QUERY = 
-defineQuery(`*[_type == "startup" && author._ref == $id] | order(_createdAt desc){
+  export const STARTUPS_BY_AUTHOR_QUERY = 
+  defineQuery(`*[_type == "startup" && author._ref == $id] | order(_createdAt desc){
   _id, 
   title,
   slug,
@@ -120,3 +105,15 @@ export const PLAYLIST_BY_SLUG_QUERY =
       pitch
     }
   }`);
+export const STARTUP_FOR_EDIT_QUERY = defineQuery(`
+  *[_type == "startup" && _id == $id][0]{
+    _id,
+    title,
+    description,
+    category,
+    contactEmail,
+    image,
+    pitch,
+    author->{ _id }
+  }
+`);

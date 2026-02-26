@@ -1,100 +1,83 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useActionState } from "react";
+import React, { useState, useActionState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "./ui/textarea";
 import MDEditor from "@uiw/react-md-editor";
 import { Send } from "lucide-react";
 import { Button } from "./ui/button";
 import { formSchema } from "@/lib/validation";
-import { z } from "zod";
+import { z } from 'zod';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { createPitch, updateStartup } from "@/lib/actions";
-
-type StartupFormValues = {
-  title: string;
-  description: string;
-  category: string;
-  email: string;
-  link: string;
-  pitch: string;
-};
+import { createPitch, updatePitch } from "@/lib/actions";
 
 type StartupFormProps = {
-  mode?: "create" | "edit";
-  startupId?: string;
-  initialValues?: Partial<StartupFormValues>;
-};
+  startupId?: string
+  initialValues?: {
+    title?: string
+    description?: string
+    category?: string
+    contactEmail?: string
+    link?: string
+    pitch?: string
+  }
+  mode?: 'create' | 'edit'
+}
 
-const StartupForm = ({ mode = "create", startupId, initialValues }: StartupFormProps) => {
+const StartupForm = ({ startupId, initialValues, mode = 'create' }: StartupFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [pitch, setPitch] = useState("");
-  const { toast } = useToast();
+  const [pitch, setPitch] = useState(initialValues?.pitch ?? "");
+  const { toast } = useToast(); 
   const router = useRouter();
-
-  const defaults = useMemo(() => {
-    return {
-      title: initialValues?.title ?? "",
-      description: initialValues?.description ?? "",
-      category: initialValues?.category ?? "",
-      email: initialValues?.email ?? "",
-      link: initialValues?.link ?? "",
-      pitch: initialValues?.pitch ?? "",
-    };
-  }, [initialValues]);
-
-  useEffect(() => {
-    // Initialize pitch for edit mode (and also works for create defaults)
-    setPitch(defaults.pitch);
-  }, [defaults.pitch]);
 
   const handleFormSubmit = async (prevState: any, formData: FormData) => {
     setErrors({});
 
     try {
       const formValues = {
-        title: formData.get("title") as string,
-        description: formData.get("description") as string,
-        category: formData.get("category") as string,
-        email: formData.get("email") as string,
-        link: formData.get("link") as string,
+        title: (formData.get("title") as string) ?? "",
+        description: (formData.get("description") as string) ?? "",
+        category: (formData.get("category") as string) ?? "",
+        contactEmail: (formData.get("contactEmail") as string) ?? "",
+        link: (formData.get("link") as string) ?? "",
         pitch,
       };
 
       await formSchema.parseAsync(formValues);
 
       const result =
-        mode === "edit"
-          ? await updateStartup(String(startupId), formData, pitch)
+        mode === 'edit'
+          ? await updatePitch(prevState, formData, pitch, startupId as string)
           : await createPitch(prevState, formData, pitch);
 
-      if (result.status == "SUCCESS") {
-        router.push(`/startup/${result._id ?? startupId}`);
+      if (result.status === 'SUCCESS') {
+        router.push(`/startup/${result._id ?? startupId}`)
       }
 
       return result;
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErorrs = error.flatten().fieldErrors;
-
         setErrors(fieldErorrs as unknown as Record<string, string>);
 
         toast({
-          title: "Error",
-          description: "Please check your inputs and try again",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Please check your inputs and try again',
+          variant: 'destructive',
         });
-        return { ...prevState, error: "Validation failed", status: "ERROR" };
+        return { ...prevState, error: 'Validation failed', status: 'ERROR' };
       }
+
       toast({
-        title: "Error",
-        description: "An unexpected error has occured",
-        variant: "destructive",
+        title: 'Error',
+        description: 'An unexpected error has occured',
+        variant: 'destructive',
       });
+
       return {
         ...prevState,
-        error: "An unexpected error has occured",
+        error: 'An unexpected error has occured',
         status: "ERROR",
       };
     }
@@ -117,7 +100,7 @@ const StartupForm = ({ mode = "create", startupId, initialValues }: StartupFormP
           className="startup-form_input"
           required
           placeholder="Startup Title"
-          defaultValue={defaults.title}
+          defaultValue={initialValues?.title}
           onChange={() =>
             setErrors((prev) => {
               const copy = { ...prev };
@@ -139,7 +122,7 @@ const StartupForm = ({ mode = "create", startupId, initialValues }: StartupFormP
           className="startup-form_textarea"
           required
           placeholder="Startup Description"
-          defaultValue={defaults.description}
+          defaultValue={initialValues?.description}
           onChange={() =>
             setErrors((prev) => {
               const copy = { ...prev };
@@ -163,7 +146,7 @@ const StartupForm = ({ mode = "create", startupId, initialValues }: StartupFormP
           className="startup-form_input"
           required
           placeholder="Startup category (Tech, Health, Education ...)"
-          defaultValue={defaults.category}
+          defaultValue={initialValues?.category}
           onChange={() =>
             setErrors((prev) => {
               const copy = { ...prev };
@@ -178,29 +161,6 @@ const StartupForm = ({ mode = "create", startupId, initialValues }: StartupFormP
       </div>
 
       <div>
-        <label htmlFor="email" className="startup-form_label">
-          Contact email
-        </label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          className="startup-form_input"
-          required
-          placeholder="you@company.com"
-          defaultValue={defaults.email}
-          onChange={() =>
-            setErrors((prev) => {
-              const copy = { ...prev };
-              delete copy.email;
-              return copy;
-            })
-          }
-        />
-        {errors.email && <p className="startup-form_error">{errors.email}</p>}
-      </div>
-
-      <div>
         <label htmlFor="link" className="startup-form_label">
           Image URL
         </label>
@@ -210,7 +170,7 @@ const StartupForm = ({ mode = "create", startupId, initialValues }: StartupFormP
           className="startup-form_input"
           required
           placeholder="Startup Image URL"
-          defaultValue={defaults.link}
+          defaultValue={initialValues?.link}
           onChange={() =>
             setErrors((prev) => {
               const copy = { ...prev };
@@ -222,6 +182,31 @@ const StartupForm = ({ mode = "create", startupId, initialValues }: StartupFormP
         {errors.link && <p className="startup-form_error">{errors.link}</p>}
       </div>
 
+      <div>
+        <label htmlFor="contactEmail" className="startup-form_label">
+          Contact Email
+        </label>
+        <Input
+          id="contactEmail"
+          name="contactEmail"
+          type="email"
+          className="startup-form_input"
+          required
+          placeholder="Contact Email"
+          defaultValue={initialValues?.contactEmail}
+          onChange={() =>
+            setErrors((prev) => {
+              const copy = { ...prev };
+              delete copy.contactEmail;
+              return copy;
+            })
+          }
+        />
+        {errors.contactEmail && (
+          <p className="startup-form_error">{errors.contactEmail}</p>
+        )}
+      </div>
+
       <div data-color-mode="light">
         <label htmlFor="pitch" className="startup-form_label">
           Pitch
@@ -229,7 +214,7 @@ const StartupForm = ({ mode = "create", startupId, initialValues }: StartupFormP
         <MDEditor
           value={pitch}
           onChange={(value) => {
-            setPitch(value as string);
+            setPitch((value as string) ?? "");
             setErrors((prev) => {
               const copy = { ...prev };
               delete copy.pitch;
@@ -256,12 +241,12 @@ const StartupForm = ({ mode = "create", startupId, initialValues }: StartupFormP
         disabled={isPending}
       >
         {isPending
-          ? mode === "edit"
-            ? "Saving ..."
-            : "Submitting ..."
-          : mode === "edit"
-            ? "Save changes"
-            : "Submit your pitch"}
+          ? mode === 'edit'
+            ? 'Saving...'
+            : 'Submitting ...'
+          : mode === 'edit'
+            ? 'Save changes'
+            : 'Submit your pitch'}
         <Send className="size-6 ml-2" />
       </Button>
     </form>

@@ -1,38 +1,39 @@
+import { auth } from "@/auth";
+import { client } from "@/sanity/lib/client";
+import { STARTUP_FOR_EDIT_QUERY } from "@/sanity/lib/queries";
+import { notFound, redirect } from "next/navigation";
+import StartupForm from "@/components/StartupForm";
+
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-import { auth } from "@/auth";
-import StartupForm from "@/components/StartupForm";
-import { client } from "@/sanity/lib/client";
-import { STARTUP_BY_ID_QUERY } from "@/sanity/lib/queries";
-import { notFound, redirect } from "next/navigation";
-
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const session = await auth();
-  if (!session) redirect("/");
-
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const session = await auth();
+
+  if (!session) redirect("/");
   if (!id) return notFound();
 
-  const post: any = await client.fetch(STARTUP_BY_ID_QUERY, { id: String(id) });
-  if (!post) return notFound();
+  const startup = await client
+    .withConfig({ useCdn: false })
+    .fetch(STARTUP_FOR_EDIT_QUERY, { id });
 
-  const sessionUserId = (session as any)?.id ?? (session as any)?.user?.id;
-  const authorRef = post?.author?._ref;
-  const authorDocId = post?.author?._id;
+  if (!startup) return notFound();
 
-  const isOwner = Boolean(
-    sessionUserId && (sessionUserId === authorRef || sessionUserId === authorDocId)
-  );
+  const ownerId = startup?.author?._id;
+  if (!ownerId || ownerId !== session.id) return notFound();
 
-  if (!isOwner) redirect(`/startup/${id}`);
+  // pitch is stored as Portable Text array. Convert it to plain text for the editor.
+  const pitchText = Array.isArray(startup.pitch)
+    ? startup.pitch
+        .map((b: any) =>
+          Array.isArray(b?.children)
+            ? b.children.map((c: any) => c?.text ?? "").join("")
+            : ""
+        )
+        .join("\n\n")
+    : "";
 
-  // STARTUP_BY_ID_QUERY returns image as `image`.
-  // The form expects `link` field name.
   return (
     <>
       <section className="pink_container !min-h-[230px]">
@@ -43,24 +44,12 @@ export default async function Page({
         mode="edit"
         startupId={id}
         initialValues={{
-          title: post?.title ?? "",
-          description: post?.description ?? "",
-          category: post?.category ?? "",
-          email: post?.contactEmail ?? "",
-          link: post?.image ?? "",
-          // `pitch` in Sanity is Portable Text; store as string in the editor.
-          pitch:
-            typeof post?.pitch === "string"
-              ? post.pitch
-              : Array.isArray(post?.pitch)
-                ? post.pitch
-                    .map((b: any) =>
-                      Array.isArray(b?.children)
-                        ? b.children.map((c: any) => c?.text ?? "").join("")
-                        : ""
-                    )
-                    .join("\n\n")
-                : "",
+          title: startup.title,
+          description: startup.description,
+          category: startup.category,
+          contactEmail: startup.contactEmail,
+          link: startup.image,
+          pitch: pitchText,
         }}
       />
     </>

@@ -42,19 +42,16 @@ export const startup = defineType({
     }),
 
     defineField({
-      name: 'contactEmail',
-      title: 'Contact email',
-      type: 'string',
-      validation: (Rule) =>
-        Rule.required()
-          .email()
-          .error('Please enter a valid contact email'),
-    }),
-
-    defineField({
       name: 'image',
       type: 'url',
       validation: (Rule) => Rule.required(),
+    }),
+
+    defineField({
+      name: 'contactEmail',
+      title: 'Contact Email',
+      type: 'string',
+      validation: (Rule) => Rule.required().email().error('Please enter a valid contact email'),
     }),
 
     // ✅ MARKDOWN-COMPATIBLE FIELD (Portable Text)
