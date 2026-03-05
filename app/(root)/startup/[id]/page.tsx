@@ -5,37 +5,21 @@ export const fetchCache = "force-no-store";
 
 import { formatDate } from "@/lib/utils";
 import { client } from "@/sanity/lib/client";
-import {
-  PLAYLIST_BY_SLUG_QUERY,
-  STARTUP_BY_ID_QUERY,
-} from "@/sanity/lib/queries";
+import { PLAYLIST_BY_SLUG_QUERY, STARTUP_BY_ID_QUERY } from "@/sanity/lib/queries";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { PortableText } from "@portabletext/react";
 import StartupCard, { StartupTypeCard } from "@/components/StartupCard";
 import ViewClient from "@/components/View.client";
-import { Suspense } from "react";
 import { auth } from "@/auth";
 import { deleteStartup } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
 import DeleteStartupButton from "@/components/DeleteStartupButton.client";
 
-// Non-async parent page — fetches moved to an async child wrapped in Suspense
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  if (!id) return notFound();
-
-  return (
-    <Suspense fallback={<p className="mt-7">Loading startup...</p>}>
-      <PostContent id={id} />
-    </Suspense>
-  );
-}
-
-// Async server child component that performs uncached fetches safely inside Suspense
-async function PostContent({ id }: { id: string }) {
   if (!id) return notFound();
 
   const session = await auth();
@@ -66,25 +50,23 @@ async function PostContent({ id }: { id: string }) {
     return notFound();
   }
 
-  const isOwner = session?.id && post?.author?._id && session.id === post.author._id;
+  if (!post) return notFound();
+
+  const isOwner =
+    !!(session?.id && post?.author?._id && session.id === post.author._id);
 
   async function deleteAction() {
     "use server";
     const res = await deleteStartup(id);
-    if (res.status === 'SUCCESS') {
-      redirect('/');
+    if (res.status === "SUCCESS") {
+      redirect("/");
     }
-    throw new Error(res.error || 'Failed to delete startup');
+    throw new Error(res.error || "Failed to delete startup");
   }
 
   const playlistResult = playlistWrapper?.res ?? playlistWrapper ?? null;
   const editorPosts: StartupTypeCard[] =
     (playlistResult?.select as StartupTypeCard[]) ?? [];
-
-  if (!post) {
-    console.warn("Startup not found", { id });
-    return notFound();
-  }
 
   // Normalize pitch for PortableText
   let pitchValue = post.pitch;

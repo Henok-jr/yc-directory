@@ -1,12 +1,11 @@
-"use client";
+"use client"
 
 import Link from "next/link";
 import Image from "next/image";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { BadgePlus, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import React from "react";
-import LoginButton from "@/components/LoginButton.client";
 
 export default function NavbarClient() {
   const { data: session } = useSession();
@@ -44,7 +43,7 @@ export default function NavbarClient() {
               </Link>
             </>
           ) : (
-            <LoginButton />
+            <button onClick={() => signIn('github')}>Login</button>
           )}
         </div>
       </nav>
