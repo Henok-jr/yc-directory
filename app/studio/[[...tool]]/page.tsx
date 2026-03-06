@@ -7,13 +7,11 @@
  * https://github.com/sanity-io/next-sanity
  */
 
-import { NextStudio } from 'next-sanity/studio'
-import config from '../../../sanity.config'
+import { notFound } from "next/navigation";
 
-//export const dynamic = 'force-static'
-
-export { metadata, viewport } from 'next-sanity/studio'
-
+// The embedded Studio route is intentionally disabled.
+// Sanity Studio should be deployed as a separate app to avoid RxJS/bundler conflicts
+// (common with Next canary / Turbopack) and to keep production builds stable.
 export default function StudioPage() {
-  return <NextStudio config={config} />
+  return notFound();
 }

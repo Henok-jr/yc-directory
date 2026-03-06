@@ -34,3 +34,18 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+# YC Directory
+
+## Sanity Studio
+
+This Next.js app intentionally **does not embed Sanity Studio** at `/studio`.
+
+Embedding Studio inside the Next (App Router) build can cause RxJS/bundler resolution issues (especially on Next canary / Turbopack) and destabilize production builds.
+
+### Recommended setup
+
+- Deploy Sanity Studio as a separate app (recommended by Sanity for many production setups)
+- Keep this repo focused on the public website + API routes
+
+If you want to re-enable the embedded Studio route, restore `app/studio/[[...tool]]/page.tsx` to use `NextStudio` and ensure your build toolchain can bundle Sanity Studio reliably.
