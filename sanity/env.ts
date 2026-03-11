@@ -1,5 +1,12 @@
-export const apiVersion =
-  process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2026-01-30'
+const isValidApiVersion = (v: string | undefined) => {
+  if (!v) return false;
+  // Sanity API versions are date strings like 2024-01-01
+  return /^\d{4}-\d{2}-\d{2}$/.test(v);
+};
+
+export const apiVersion = isValidApiVersion(process.env.NEXT_PUBLIC_SANITY_API_VERSION)
+  ? (process.env.NEXT_PUBLIC_SANITY_API_VERSION as string)
+  : "2024-01-01";
 
 export const dataset = assertValue(
   process.env.NEXT_PUBLIC_SANITY_DATASET,

@@ -1,8 +1,6 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { client } from '@/sanity/lib/client'
-import { STARTUPS_QUERY } from '@/sanity/lib/queries'
 import StartupCard, { StartupTypeCard } from './StartupCard'
 
 export default function StartupsList({ query }: { query?: string | null }) {
@@ -11,22 +9,24 @@ export default function StartupsList({ query }: { query?: string | null }) {
 
   useEffect(() => {
     let mounted = true
-    const params = { search: query || null }
 
-    client
-      .fetch(STARTUPS_QUERY, params)
-      .then((res) => {
+    const run = async () => {
+      try {
+        const qs = query ? `?query=${encodeURIComponent(query)}` : ''
+        const res = await fetch(`/api/startups${qs}`, { cache: 'no-store' })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = await res.json()
         if (!mounted) return
-        // GROQ query returns an array of documents
-        setPosts(res ?? [])
-      })
-      .catch((err) => {
-        console.error('StartupsList fetch error:', err)
+        setPosts(data?.startups ?? [])
+      } catch (err) {
+        console.error('[StartupsList] fetch error', err)
         if (mounted) setPosts([])
-      })
-      .finally(() => {
+      } finally {
         if (mounted) setLoading(false)
-      })
+      }
+    }
+
+    run()
 
     return () => {
       mounted = false
