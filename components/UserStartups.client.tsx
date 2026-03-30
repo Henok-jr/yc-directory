@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { client } from '@/sanity/lib/client'
+import { client } from '@/sanity/lib/client.browser'
 import { STARTUPS_BY_AUTHOR_QUERY } from '@/sanity/lib/queries'
 import StartupCard, { StartupTypeCard, StartupCardSkeleton } from './StartupCard'
 import Link from 'next/link'

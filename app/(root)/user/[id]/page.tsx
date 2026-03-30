@@ -9,7 +9,7 @@ import UserStartupsClient from '@/components/UserStartups.client'
 
 const page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const id = (await params).id;
-  const session = await auth();
+  const session = (await auth()) as any;
 
   let user;
   try {
@@ -39,8 +39,11 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
             className="profile_image"
           />
 
-          <p className="text-30-extrabold mt-7 text-center">
-            @{user?.username}
+          <p
+            className="mt-2 text-sm text-white/80 truncate max-w-[220px] text-center"
+            title={user?.email}
+          >
+            {user?.email}
           </p>
 
           <p className="mt-1 text-center text-14-normal">

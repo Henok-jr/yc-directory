@@ -22,7 +22,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
   if (!id) return notFound();
 
-  const session = await auth();
+  const session = (await auth()) as any;
 
   let post: any = null;
   let playlistWrapper: any = null;
@@ -115,9 +115,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               />
               <div>
                 <p className="text-20-medium">{post.author.name}</p>
-                <p className="text-16-medium !text-black-300">
-                  @{post.author.username}
-                </p>
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-500 truncate" title={post.author.username}>
+                    {post.author.username}
+                  </p>
+                </div>
               </div>
             </Link>
             <p className="category-tag">{post.category}</p>
