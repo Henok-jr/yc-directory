@@ -57,11 +57,12 @@ export const authOptions: any = {
     },
 
     async session({ session, token }: any) {
-      if (session.user) {
-        Object.assign(session.user, { id: (token as any).id }); // fix for Vercel
-      }
-      return session;
-    },
+  if (session.user) {
+    // ✅ Assign token.id to session.user.id
+    Object.assign(session.user, { id: token.id });
+  }
+  return session;
+},
   },
 };
 
