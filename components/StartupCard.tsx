@@ -39,12 +39,13 @@ const StartupCard = ( {post} : { post: StartupTypeCard }) => {
                 </Link>
          </div>
          <Link href={`/user/${author?._id}`}>
-           <Image 
-           src={author?.image!}
-           alt={author?.name!} 
-           width={48} 
-           height={48} 
-           className="rounded-full"/>
+           <Image
+             src={author?.image || "/logo.png"}
+             alt={author?.name || "Author avatar"}
+             width={48}
+             height={48}
+             className="rounded-full"
+           />
          </Link>
      </div>
 
@@ -53,7 +54,13 @@ const StartupCard = ( {post} : { post: StartupTypeCard }) => {
             {description}
          </p>
 
-         <img src={image} alt= "placeholder" className="startup-card_img"/>
+         {image ? (
+           <img
+             src={image}
+             alt={title ? `${title} thumbnail` : "Startup thumbnail"}
+             className="startup-card_img"
+           />
+         ) : null}
      </Link>
      <div className="flex-between gap-3 mt-5">
         <Link href={`/?query=${category?.toLowerCase()}`}>

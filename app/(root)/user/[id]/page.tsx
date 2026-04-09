@@ -7,13 +7,16 @@ import { User } from "lucide-react";
 import StartupCard, { StartupCardSkeleton } from "@/components/StartupCard";
 import UserStartupsClient from '@/components/UserStartups.client'
 
+export const dynamic = "force-dynamic";
+
 const page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const id = (await params).id;
   const session = await auth();
 
   let user;
   try {
-    user = await client.fetch(AUTHOR_BY_ID_QUERY, { id });
+    // Always fetch from server-side API (no CDN) for consistency
+    user = await client.withConfig({ useCdn: false }).fetch(AUTHOR_BY_ID_QUERY, { id });
   } catch (err) {
     console.error("Sanity fetch error (AUTHOR_BY_ID_QUERY):", err);
     throw err;
@@ -32,8 +35,8 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
           </div>
 
           <Image
-            src={user.image}
-            alt={user.name}
+            src={user.image || "/logo.png"}
+            alt={user.name || "Profile image"}
             width={220}
             height={200}
             className="profile_image"

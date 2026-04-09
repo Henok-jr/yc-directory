@@ -1,49 +1,65 @@
-import NextAuth from "next-auth"
-import GitHub from "next-auth/providers/github"
-import { AUTHOR_BY_GITHUB_ID_QUERY } from "./sanity/lib/queries"
+// next-auth v5 beta types sometimes report the default export as non-callable.
+// Use a require-import to obtain the runtime callable default export.
+const NextAuth = require("next-auth").default as any;
+
+import Google from "next-auth/providers/google";
+
+import { AUTHOR_BY_GOOGLE_ID_QUERY } from "./sanity/lib/queries";
 import { client } from "./sanity/lib/client";
 import { writeClient } from "./sanity/lib/write-client";
- 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [GitHub],
-  callbacks: {
-    async signIn({ 
-      user: { name,email,image},
-      profile: {id, login, bio}}) {
-      const existingUser = await client
-      .withConfig({useCdn:false})
-      .fetch(AUTHOR_BY_GITHUB_ID_QUERY, { 
-        id,
-       })
-       
 
-       if(!existingUser) {
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async signIn({ user, profile }: any) {
+      const name = user?.name ?? "";
+      const email = user?.email ?? "";
+      const image = user?.image ?? "";
+
+      const googleId = profile?.sub;
+      const username = profile?.given_name || profile?.name || name || "user";
+
+      if (!googleId) return true;
+
+      const existingUser = await client
+        .withConfig({ useCdn: false })
+        .fetch(AUTHOR_BY_GOOGLE_ID_QUERY, { id: googleId });
+
+      if (!existingUser) {
         await writeClient.create({
-          _type: 'author',
-          id,
+          _type: "author",
+          id: googleId,
           name,
-          username: login,
+          username,
           email,
           image,
-          bio: bio || "",
+          bio: "",
         });
-       }
-        return true;
+      }
+
+      return true;
     },
-    async jwt({ token, account, profile}) {
-      if(account && profile) {
+
+    async jwt({ token, account, profile }: any) {
+      if (account && profile) {
+        const googleId = profile?.sub;
         const user = await client
-        .withConfig({useCdn: false})
-        .fetch(AUTHOR_BY_GITHUB_ID_QUERY, {
-          id: profile?.id,
-        });
+          .withConfig({ useCdn: false })
+          .fetch(AUTHOR_BY_GOOGLE_ID_QUERY, { id: googleId });
 
         token.id = user?._id;
-    }
-    return token;},
-    async session({ session, token}){
-      Object.assign(session, { id: token.id});
+      }
+      return token;
+    },
+
+    async session({ session, token }: any) {
+      session.id = token.id;
       return session;
-    }
-},
+    },
+  },
 });

@@ -1,8 +1,6 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { client } from '@/sanity/lib/client'
-import { STARTUPS_BY_AUTHOR_QUERY } from '@/sanity/lib/queries'
 import StartupCard, { StartupTypeCard, StartupCardSkeleton } from './StartupCard'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -17,13 +15,27 @@ export default function UserStartupsClient({ id }: { id: string }) {
 
   useEffect(() => {
     let mounted = true
-    client
-      .fetch(STARTUPS_BY_AUTHOR_QUERY, { id })
-      .then(res => { if (!mounted) return; setPosts(res ?? []) })
-      .catch(err => { console.error('UserStartups fetch error', err); if (mounted) setPosts([]) })
-      .finally(() => { if (mounted) setLoading(false) })
 
-    return () => { mounted = false }
+    const run = async () => {
+      try {
+        const res = await fetch(`/api/users/${id}/startups`, { cache: 'no-store' })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = await res.json()
+        if (!mounted) return
+        setPosts(data?.startups ?? [])
+      } catch (err) {
+        console.error('UserStartups fetch error', err)
+        if (mounted) setPosts([])
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+
+    run()
+
+    return () => {
+      mounted = false
+    }
   }, [id])
 
   if (loading) return <StartupCardSkeleton />

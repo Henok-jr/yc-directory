@@ -43,7 +43,12 @@ export default function NavbarClient() {
               </Link>
             </>
           ) : (
-            <button onClick={() => signIn('github')}>Login</button>
+            <button
+              className="max-w-[220px] truncate"
+              onClick={() => signIn('google')}
+            >
+              Login
+            </button>
           )}
         </div>
       </nav>
