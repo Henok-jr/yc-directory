@@ -1,14 +1,14 @@
-import NextAuth from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import { getServerSession } from "next-auth";
-import Google from "next-auth/providers/google";
+import GoogleProvider from "next-auth/providers/google";
 
 import { AUTHOR_BY_GOOGLE_ID_QUERY } from "./sanity/lib/queries";
 import { client } from "./sanity/lib/client";
 import { writeClient } from "./sanity/lib/write-client";
 
-export const { handlers, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
@@ -61,8 +61,9 @@ export const { handlers, signIn, signOut } = NextAuth({
       return session;
     },
   },
-});
+  secret: process.env.NEXTAUTH_SECRET,
+};
 
 export async function auth() {
-  return getServerSession();
+  return getServerSession(authOptions);
 }

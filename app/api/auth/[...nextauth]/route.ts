@@ -1,10 +1,6 @@
-import { handlers } from "@/auth";
-import type { NextRequest } from "next/server";
+import NextAuth from "next-auth";
+import { authOptions } from "@/auth";
 
-export async function GET(req: NextRequest) {
-  return handlers.GET(req);
-}
+const handler = NextAuth(authOptions);
 
-export async function POST(req: NextRequest) {
-  return handlers.POST(req);
-}
+export { handler as GET, handler as POST };
