@@ -114,19 +114,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 className="rounded-full drop-shadow-lg"
               />
               <div>
-<<<<<<< HEAD
                 <p className="text-20-medium">{post.author?.name || "Unknown"}</p>
-                <p className="text-16-medium !text-black-300">
-                  @{post.author?.username || "unknown"}
-                </p>
-=======
-                <p className="text-20-medium">{post.author.name}</p>
-                <div className="min-w-0">
-                  <p className="text-sm text-gray-500 truncate" title={post.author.username}>
-                    {post.author.username}
-                  </p>
-                </div>
->>>>>>> 9b4a281013b39721a81ee44450413ca7ef95d6cc
               </div>
             </Link>
             <p className="category-tag">{post.category}</p>

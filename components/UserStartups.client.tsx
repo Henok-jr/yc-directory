@@ -1,11 +1,6 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-<<<<<<< HEAD
-=======
-import { client } from '@/sanity/lib/client.browser'
-import { STARTUPS_BY_AUTHOR_QUERY } from '@/sanity/lib/queries'
->>>>>>> 9b4a281013b39721a81ee44450413ca7ef95d6cc
 import StartupCard, { StartupTypeCard, StartupCardSkeleton } from './StartupCard'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'

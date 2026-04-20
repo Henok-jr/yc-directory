@@ -32,30 +32,6 @@ export default function NavbarClient() {
 								<LogOut className="h-6 w-6 sm:hidden text-red-500" />
 							</button>
 
-<<<<<<< HEAD
-              <Link href={profileId ? `/user/${profileId}` : `/`}>
-                <Avatar className="size-10">
-                  <AvatarImage
-                    src={(session.user as any)?.image || ""}
-                    alt={(session.user as any)?.name || ""}
-                  />
-                  <AvatarFallback>AV</AvatarFallback>
-                </Avatar>
-              </Link>
-            </>
-          ) : (
-            <button
-              className="max-w-[220px] truncate"
-              onClick={() => signIn('google')}
-            >
-              Login
-            </button>
-          )}
-        </div>
-      </nav>
-    </header>
-  );
-=======
 							<Link href={profileId ? `/user/${profileId}` : `/`}>
 								<Avatar className="size-10">
 									<AvatarImage
@@ -67,11 +43,12 @@ export default function NavbarClient() {
 							</Link>
 						</>
 					) : (
-						<button onClick={() => signIn("google")}>Login</button>
+						<button className="max-w-[220px] truncate" onClick={() => signIn("google")}>
+							Login
+						</button>
 					)}
 				</div>
 			</nav>
 		</header>
 	);
->>>>>>> 9b4a281013b39721a81ee44450413ca7ef95d6cc
 }

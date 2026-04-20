@@ -60,17 +60,6 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
             className="profile_image"
           />
 
-<<<<<<< HEAD
-          {/* Username hidden */}
-=======
-          <p
-            className="mt-2 text-sm text-white/80 truncate max-w-[220px] text-center"
-            title={user?.email}
-          >
-            {user?.email}
-          </p>
->>>>>>> 9b4a281013b39721a81ee44450413ca7ef95d6cc
-
           {user?.email ? (
             <p
               className="mt-2 text-sm text-white/80 text-center w-full max-w-full px-2 break-all overflow-hidden"
