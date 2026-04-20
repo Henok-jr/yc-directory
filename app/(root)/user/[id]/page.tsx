@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 const page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const id = (await params).id;
-  const session = await auth();
+  const session = (await auth()) as any;
 
   let user;
   try {
@@ -60,7 +60,16 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
             className="profile_image"
           />
 
+<<<<<<< HEAD
           {/* Username hidden */}
+=======
+          <p
+            className="mt-2 text-sm text-white/80 truncate max-w-[220px] text-center"
+            title={user?.email}
+          >
+            {user?.email}
+          </p>
+>>>>>>> 9b4a281013b39721a81ee44450413ca7ef95d6cc
 
           {user?.email ? (
             <p

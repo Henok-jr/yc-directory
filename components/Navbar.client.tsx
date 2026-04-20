@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -8,30 +8,31 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import React from "react";
 
 export default function NavbarClient() {
-  const { data: session } = useSession();
+	const { data: session } = useSession();
 
-  const profileId = (session as any)?.id;
+	const profileId = (session as any)?.id;
 
-  return (
-    <header className="px-5 py-3 bg-white shadow-sm font-work-sans">
-      <nav className="flex justify-between items-center">
-        <Link href="/">
-          <Image src="/logo.png" alt="Logo" width={144} height={30} />
-        </Link>
+	return (
+		<header className="px-5 py-3 bg-white shadow-sm font-work-sans">
+			<nav className="flex justify-between items-center">
+				<Link href="/">
+					<Image src="/logo.png" alt="Logo" width={144} height={30} />
+				</Link>
 
-        <div className="flex items-center gap-5 text-black">
-          {session ? (
-            <>
-              <Link href="/startup/create">
-                <span className="hidden sm:inline">Create</span>
-                <BadgePlus className="size-6 sm:hidden" />
-              </Link>
+				<div className="flex items-center gap-5 text-black">
+					{session ? (
+						<>
+							<Link href="/startup/create">
+								<span className="hidden sm:inline">Create</span>
+								<BadgePlus className="size-6 sm:hidden" />
+							</Link>
 
-              <button onClick={() => signOut({ callbackUrl: "/" })}>
-                <span className="hidden sm:inline">Logout</span>
-                <LogOut className="h-6 w-6 sm:hidden text-red-500" />
-              </button>
+							<button onClick={() => signOut({ callbackUrl: "/" })}>
+								<span className="hidden sm:inline">Logout</span>
+								<LogOut className="h-6 w-6 sm:hidden text-red-500" />
+							</button>
 
+<<<<<<< HEAD
               <Link href={profileId ? `/user/${profileId}` : `/`}>
                 <Avatar className="size-10">
                   <AvatarImage
@@ -54,4 +55,23 @@ export default function NavbarClient() {
       </nav>
     </header>
   );
+=======
+							<Link href={profileId ? `/user/${profileId}` : `/`}>
+								<Avatar className="size-10">
+									<AvatarImage
+										src={(session.user as any)?.image || ""}
+										alt={(session.user as any)?.name || ""}
+									/>
+									<AvatarFallback>AV</AvatarFallback>
+								</Avatar>
+							</Link>
+						</>
+					) : (
+						<button onClick={() => signIn("google")}>Login</button>
+					)}
+				</div>
+			</nav>
+		</header>
+	);
+>>>>>>> 9b4a281013b39721a81ee44450413ca7ef95d6cc
 }
