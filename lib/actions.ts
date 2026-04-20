@@ -177,7 +177,7 @@ export const deleteStartup = async (startupId: string) => {
     });
 
   const ownerId = existing?.author?._id;
-  if (!ownerId || ownerId !== session.id)
+  if (!ownerId || ownerId !== (session as any).id)
     return parseServerActionResponse({
       error: "Not authorized",
       status: "ERROR",

@@ -15,10 +15,28 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
 
   let user;
   try {
-    // Always fetch from server-side API (no CDN) for consistency
-    user = await client.withConfig({ useCdn: false }).fetch(AUTHOR_BY_ID_QUERY, { id });
+    const sanity = client.withConfig({ useCdn: false });
+
+    // 1) Try by Sanity document _id (existing behavior)
+    user = await sanity.fetch(AUTHOR_BY_ID_QUERY, { id });
+
+    // 2) Fallback: some links/providers use `author.id` (OAuth subject). Try resolving that too.
+    if (!user) {
+      user = await sanity.fetch(
+        `*[_type == "author" && id == $id][0]{
+          _id,
+          id,
+          name,
+          username,
+          email,
+          image,
+          bio
+        }`,
+        { id }
+      );
+    }
   } catch (err) {
-    console.error("Sanity fetch error (AUTHOR_BY_ID_QUERY):", err);
+    console.error("Sanity fetch error (AUTHOR):", err);
     throw err;
   }
 
@@ -42,13 +60,18 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
             className="profile_image"
           />
 
-          <p className="text-30-extrabold mt-7 text-center">
-            @{user?.username}
-          </p>
+          {/* Username hidden */}
 
-          <p className="mt-1 text-center text-14-normal">
-            {user?.bio}
-          </p>
+          {user?.email ? (
+            <p
+              className="mt-2 text-sm text-white/80 text-center w-full max-w-full px-2 break-all overflow-hidden"
+              title={user.email}
+            >
+              {user.email}
+            </p>
+          ) : null}
+
+          <p className="mt-1 text-center text-14-normal">{user?.bio}</p>
         </div>
 
         <div className="flex-1 flex flex-col gap-5 lg:-mt-5">
